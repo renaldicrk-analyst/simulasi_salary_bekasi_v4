@@ -1,211 +1,317 @@
 import streamlit as st
 import datetime as dt
+import pandas as pd
 
 from queries import SIMULATION_QUERY
 from db import fetch_dataframe
 
+# ======================================================
+# PAGE CONFIG
+# ======================================================
+st.set_page_config(page_title="Simulasi Penggajian", layout="wide")
+st.title("Simulasi Penggajian")
 
-# =========================
-# CONFIG & CONSTANT
-# =========================
-SCHEMES = {
-    "Skema 1": {
-        "gapok": 90000,
-        "max_salary": 150000,
-        "bonus_threshold": 1_000_000
-    },
-    "Skema 2": {
-        "gapok": 90000,
-        "max_salary": 140000,
-        "bonus_threshold": 1_000_000
-    },
-    "Skema 3": {
-        "gapok": 90000,
-        "max_salary": 130000,
-        "bonus_threshold": 1_000_000
-    },
-    "Skema 4": {
-        "gapok": 100000,
-        "max_salary": 200000,
-        "bonus_threshold": 1_300_000
-    }
-}
-
-st.set_page_config(
-    page_title="Simulasi Penggajian – Branch Bekasi",
-    layout="wide"
-)
-
-st.title("Simulasi Penggajian – Branch Bekasi")
-
-
-# =========================
-# SIDEBAR FILTER
-# =========================
 branch = "Jakarta"
 
-st.sidebar.header("Filter Simulasi")
+# ======================================================
+# SIDEBAR – PILIH SKEMA
+# ======================================================
+st.sidebar.header("Skema Penggajian")
 
-scheme_options = list(SCHEMES.keys()) + ["Custom"]
-scheme_name = st.sidebar.selectbox("Skema Penggajian", scheme_options)
-
-use_perbantuan = st.sidebar.checkbox("Gunakan Perbantuan", value=False)
-
-days = st.sidebar.slider(
-    "Jumlah Hari",
-    min_value=1,
-    max_value=30,
-    value=30
+mode_label = st.sidebar.radio(
+    "Pilih Skema",
+    [
+        "Custom 1 – Bonus Flat Harian",
+        "Custom 2 – Bonus Berjenjang Harian",
+        "Custom 3 – Bonus Fixed Bulanan",
+        "Custom 4 – Bonus Berjenjang Bulanan",
+    ]
 )
 
+mode_key = {
+    "Custom 1 – Bonus Flat Harian": "custom_1",
+    "Custom 2 – Bonus Berjenjang Harian": "custom_2",
+    "Custom 3 – Bonus Fixed Bulanan": "custom_3",
+    "Custom 4 – Bonus Berjenjang Bulanan": "custom_4",
+}[mode_label]
+
+st.sidebar.divider()
+
+# ======================================================
+# JUMLAH HARI
+# ======================================================
+days = st.sidebar.slider("Jumlah Hari Kerja", 1, 31, 26)
 start_date = dt.date(2025, 11, 1)
 end_date = start_date + dt.timedelta(days=days - 1)
 
+# ======================================================
+# GAPOK
+# ======================================================
+gapok = st.sidebar.number_input("Gapok / Hari", value=90_000, step=5_000)
 
-# =========================
-# SCHEME LOGIC
-# =========================
-if scheme_name == "Custom":
-    st.sidebar.subheader("Skema Custom")
+# ======================================================
+# DEFAULT PARAM (ANTI SQL ERROR)
+# ======================================================
+bonus_trigger = flat_bonus = 0
+tier_1_sales = tier_2_sales = tier_3_sales = 0
+tier_1_pct = tier_2_pct = tier_3_pct = 0.0
 
-    gapok = st.sidebar.number_input(
-        "Gapok / Hari",
-        min_value=0,
-        value=90000,
-        step=5000
+monthly_sales_trigger = monthly_fixed_bonus = 0
+monthly_tier_1_sales = monthly_tier_2_sales = monthly_tier_3_sales = 0
+monthly_tier_1_pct = monthly_tier_2_pct = monthly_tier_3_pct = 0.0
+
+# ======================================================
+# SETTING BONUS
+# ======================================================
+if mode_key == "custom_1":
+    bonus_trigger = st.sidebar.number_input("Target Sales Bonus", value=1_000_000)
+    flat_bonus = st.sidebar.number_input("Bonus / Hari", value=60_000)
+
+elif mode_key == "custom_2":
+    tier_1_sales = st.sidebar.number_input("Tier 1 ≥", value=1_200_000)
+    tier_1_pct = st.sidebar.number_input("Bonus % Tier 1", value=0.05, step=0.01)
+    tier_2_sales = st.sidebar.number_input("Tier 2 ≥", value=1_700_000)
+    tier_2_pct = st.sidebar.number_input("Bonus % Tier 2", value=0.08, step=0.01)
+    tier_3_sales = st.sidebar.number_input("Tier 3 ≥", value=2_200_000)
+    tier_3_pct = st.sidebar.number_input("Bonus % Tier 3", value=0.10, step=0.01)
+
+elif mode_key == "custom_3":
+    monthly_sales_trigger = st.sidebar.number_input("Target Sales Bulanan", value=30_000_000)
+    monthly_fixed_bonus = st.sidebar.number_input("Bonus Bulanan", value=1_500_000)
+
+elif mode_key == "custom_4":
+    monthly_tier_1_sales = st.sidebar.number_input("Tier 1 ≥", value=30_000_000)
+    monthly_tier_1_pct = st.sidebar.number_input("Bonus % Tier 1", value=0.05, step=0.01)
+    monthly_tier_2_sales = st.sidebar.number_input("Tier 2 ≥", value=40_000_000)
+    monthly_tier_2_pct = st.sidebar.number_input("Bonus % Tier 2", value=0.08, step=0.01)
+    monthly_tier_3_sales = st.sidebar.number_input("Tier 3 ≥", value=60_000_000)
+    monthly_tier_3_pct = st.sidebar.number_input("Bonus % Tier 3", value=0.10, step=0.01)
+
+# ======================================================
+# CREW PERBANTUAN
+# ======================================================
+st.sidebar.divider()
+use_perbantuan = st.sidebar.checkbox("Gunakan Crew Perbantuan", value=True)
+
+crew_1_threshold = st.sidebar.number_input("Sales ≥ +1 Crew", value=1_700_000)
+crew_2_threshold = st.sidebar.number_input("Sales ≥ +2 Crew", value=2_700_000)
+crew_3_threshold = st.sidebar.number_input("Sales ≥ +3 Crew", value=3_700_000)
+
+# ======================================================
+# DESKRIPSI SKEMA
+# ======================================================
+if mode_key == "custom_1":
+    st.info(
+        f"""
+        **Skema Custom 1 – Bonus Flat Harian**
+
+        - Gapok harian: **Rp {gapok:,.0f}**
+        - Bonus tetap **Rp {flat_bonus:,.0f} / hari**
+        - Bonus diberikan jika **sales ≥ Rp {bonus_trigger:,.0f}**
+
+        **Rumus:**
+        > Gaji Harian = Gapok + Bonus Flat  
+        > Total Gaji = Gaji Harian × Jumlah Hari Kerja
+
+        **Crew Perbantuan:**  
+        {"Aktif (berdasarkan threshold sales)" if use_perbantuan else "Tidak digunakan"}
+        """
     )
 
-    bonus = st.sidebar.number_input(
-        "Bonus / Hari",
-        min_value=0,
-        value=60000,
-        step=5000
+elif mode_key == "custom_2":
+    st.info(
+        f"""
+        **Skema Custom 2 – Bonus Berjenjang Harian**
+
+        - Gapok harian: **Rp {gapok:,.0f}**
+        - Bonus dihitung dari **persentase sales harian**
+
+        **Jenjang Bonus:**
+        - ≥ Rp {tier_1_sales:,.0f} → **{tier_1_pct:.0%}**
+        - ≥ Rp {tier_2_sales:,.0f} → **{tier_2_pct:.0%}**
+        - ≥ Rp {tier_3_sales:,.0f} → **{tier_3_pct:.0%}**
+
+        **Rumus:**
+        > Gaji Harian = Gapok + (Sales × Persentase Bonus)
+
+        **Crew Perbantuan:**  
+        {"Aktif (berdasarkan threshold sales)" if use_perbantuan else "Tidak digunakan"}
+        """
     )
 
-    bonus_threshold = st.sidebar.number_input(
-        "Target Sales Bonus",
-        min_value=0,
-        value=1_000_000,
-        step=100_000
-    )
+elif mode_key == "custom_3":
+    st.info(
+        f"""
+        **Skema Custom 3 – Bonus Fixed Bulanan**
 
-    max_salary = gapok + bonus
+        - Gapok dibayar **harian**
+        - Bonus **bulanan tetap** jika outlet mencapai target
+        - Bonus **tidak masuk gaji harian**
+
+        **Target Bulanan:**  
+        ≥ Rp {monthly_sales_trigger:,.0f} → Bonus **Rp {monthly_fixed_bonus:,.0f}**
+
+        **Crew Perbantuan:**  
+        {"Aktif (berdasarkan threshold sales harian)" if use_perbantuan else "Tidak digunakan"}
+        """
+    )
 
 else:
-    scheme = SCHEMES[scheme_name]
-    gapok = scheme["gapok"]
-    max_salary = scheme["max_salary"]
-    bonus_threshold = scheme["bonus_threshold"]
-    bonus = max_salary - gapok
+    st.info(
+        f"""
+        **Skema Custom 4 – Bonus Berjenjang Bulanan**
 
+        - Gapok dibayar **harian**
+        - Bonus dihitung dari **total sales bulanan**
+        - Bonus **tidak masuk gaji harian**
 
-# =========================
-# RINGKASAN SKEMA
-# =========================
-st.subheader(f"Ringkasan Skema – {scheme_name}")
+        **Jenjang Bonus Bulanan:**
+        - ≥ Rp {monthly_tier_1_sales:,.0f} → **{monthly_tier_1_pct:.0%}**
+        - ≥ Rp {monthly_tier_2_sales:,.0f} → **{monthly_tier_2_pct:.0%}**
+        - ≥ Rp {monthly_tier_3_sales:,.0f} → **{monthly_tier_3_pct:.0%}**
 
-col1, col2, col3, col4, col5 = st.columns(5)
-col1.metric("Gapok / Hari", f"Rp {gapok:,.0f}")
-col2.metric("Bonus / Hari", f"Rp {bonus:,.0f}")
-col3.metric("Target Sales Bonus", f"Rp {bonus_threshold:,.0f}")
-col4.metric("Max Salary / Hari", f"Rp {max_salary:,.0f}")
-col5.metric("Periode", f"{days} Hari")
+        **Crew Perbantuan:**  
+        {"Aktif (berdasarkan threshold sales harian)" if use_perbantuan else "Tidak digunakan"}
+        """
+    )
 
-st.divider()
-
-
-# =========================
-# LOAD DATA
-# =========================
+# ======================================================
+# PARAMS SQL
+# ======================================================
 params = {
     "branch": branch,
     "start_date": start_date,
     "end_date": end_date,
     "gapok": gapok,
-    "max_salary": max_salary,
-    "bonus_threshold": bonus_threshold,
-    "use_perbantuan": use_perbantuan
+
+    "use_flat_bonus": 1 if mode_key == "custom_1" else 0,
+    "use_tier_bonus": 1 if mode_key == "custom_2" else 0,
+    "use_monthly_fixed": 1 if mode_key == "custom_3" else 0,
+    "use_monthly_tier": 1 if mode_key == "custom_4" else 0,
+
+    "bonus_trigger": bonus_trigger,
+    "flat_bonus": flat_bonus,
+
+    "tier_1_sales": tier_1_sales,
+    "tier_2_sales": tier_2_sales,
+    "tier_3_sales": tier_3_sales,
+    "tier_1_pct": tier_1_pct,
+    "tier_2_pct": tier_2_pct,
+    "tier_3_pct": tier_3_pct,
+
+    "monthly_sales_trigger": monthly_sales_trigger,
+    "monthly_fixed_bonus": monthly_fixed_bonus,
+
+    "monthly_tier_1_sales": monthly_tier_1_sales,
+    "monthly_tier_2_sales": monthly_tier_2_sales,
+    "monthly_tier_3_sales": monthly_tier_3_sales,
+    "monthly_tier_1_pct": monthly_tier_1_pct,
+    "monthly_tier_2_pct": monthly_tier_2_pct,
+    "monthly_tier_3_pct": monthly_tier_3_pct,
+
+    "use_perbantuan": 1 if use_perbantuan else 0,
+    "crew_1_threshold": crew_1_threshold,
+    "crew_2_threshold": crew_2_threshold,
+    "crew_3_threshold": crew_3_threshold,
 }
 
+# ======================================================
+# LOAD DATA
+# ======================================================
 df = fetch_dataframe(SIMULATION_QUERY, params)
-
 if df.empty:
-    st.warning("Data kosong untuk filter yang dipilih")
+    st.warning("Data kosong")
     st.stop()
 
+# ======================================================
+# ================= CUSTOM 1 & 2 ========================
+# ======================================================
+if mode_key in ["custom_1", "custom_2"]:
 
-# =========================
-# RANGE TOTAL SALARY
-# =========================
-st.subheader("Range Total Salary")
+    st.subheader("Range Total Salary")
+    min_salary = gapok * days
+    max_salary = (gapok + df["bonus_crew_utama"].max()) * days
 
-min_total_salary = gapok * days
-max_total_salary = max_salary * days
+    c1, c2 = st.columns(2)
+    c1.metric("Minimum", f"Rp {min_salary:,.0f}")
+    c2.metric("Maksimum", f"Rp {max_salary:,.0f}")
 
-col1, col2 = st.columns(2)
-col1.metric("Minimum", f"Rp {min_total_salary:,.0f}", help="Gapok × jumlah hari")
-col2.metric("Maksimum", f"Rp {max_total_salary:,.0f}", help="Max salary × jumlah hari")
+    st.subheader("Distribusi Bonus")
+    dist = df["keterangan_bonus"].value_counts().reset_index()
+    dist.columns = ["Status Bonus", "Jumlah Hari"]
+    dist["Persentase"] = (dist["Jumlah Hari"] / dist["Jumlah Hari"].sum()).round(2)
+    st.dataframe(dist, use_container_width=True)
 
-st.divider()
+    st.subheader("Ringkasan Total")
+    total_sales = df["sales"].sum()
+    total_salary = df["total_salary"].sum()
+    total_bonus = df["bonus_crew_utama"].sum()
 
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Total Sales", f"Rp {total_sales:,.0f}")
+    c2.metric("Total Salary", f"Rp {total_salary:,.0f}")
+    c3.metric("Total Bonus", f"Rp {total_bonus:,.0f}")
 
-# =========================
-# DISTRIBUSI BONUS
-# =========================
-st.subheader("Distribusi Bonus")
+    st.metric("Salary Cost", f"{total_salary / total_sales:.2%}")
 
-bonus_dist = (
-    df.groupby("keterangan_bonus")
-      .size()
-      .reset_index(name="jumlah_row")
-)
-
-bonus_dist["persentase"] = (
-    bonus_dist["jumlah_row"] / bonus_dist["jumlah_row"].sum()
-).round(3)
-
-st.dataframe(bonus_dist, use_container_width=True)
-
-st.divider()
-
-
-# =========================
-# RINGKASAN TOTAL
-# =========================
-st.subheader("Ringkasan Total")
-
-total_sales = df["sales"].sum()
-total_no_os = df["total_salary_no_os"].sum()
-total_os_8 = df["total_salary_os_8"].sum()
-total_os_10 = df["total_salary_os_10"].sum()
-
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Total Sales", f"Rp {total_sales:,.0f}")
-col2.metric("Total Salary (Tanpa OS)", f"Rp {total_no_os:,.0f}")
-col3.metric("Total Salary (OS 8%)", f"Rp {total_os_8:,.0f}")
-col4.metric("Total Salary (OS 10%)", f"Rp {total_os_10:,.0f}")
-
-st.divider()
-
-
-# =========================
-# SALARY COST
-# =========================
-st.subheader("Salary Cost")
-
-col1, col2, col3 = st.columns(3)
-col1.metric("Tanpa OS", f"{total_no_os / total_sales:.2%}")
-col2.metric("Dengan OS 8%", f"{total_os_8 / total_sales:.2%}")
-col3.metric("Dengan OS 10%", f"{total_os_10 / total_sales:.2%}")
-
-st.divider()
-
-
-# =========================
-# DETAIL TABLE
-# =========================
-with st.expander("Detail Harian", expanded=False):
+    st.subheader("Detail Harian")
     st.dataframe(
-        df.sort_values(["tanggal", "outlet"]),
-        use_container_width=True
+        df[
+            [
+                "tanggal",
+                "outlet",
+                "sales",
+                "keterangan_bonus",
+                "gapok",
+                "bonus_crew_utama",
+                "crew_perbantuan",
+                "total_gaji_perbantuan",
+                "total_salary",
+            ]
+        ],
+        use_container_width=True,
+    )
+
+# ======================================================
+# ================= CUSTOM 3 & 4 ========================
+# ======================================================
+else:
+    st.subheader("Ringkasan Bonus Bulanan")
+
+    bonus_df = (
+        df.groupby("outlet")
+        .agg(sales_bulanan=("sales", "sum"), bonus=("bonus_crew_utama", "sum"))
+        .reset_index()
+    )
+
+    achieved = bonus_df[bonus_df["bonus"] > 0]
+
+    total_sales = df["sales"].sum()
+    total_salary_without_bonus = df["total_salary"].sum()
+
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Outlet Achieve Target", achieved["outlet"].nunique())
+    c2.metric("Total Bonus Bulanan", f"Rp {achieved['bonus'].sum():,.0f}")
+    c3.metric("Total Sales", f"Rp {total_sales:,.0f}")
+    c4.metric("Total Salary (Tanpa Bonus)", f"Rp {total_salary_without_bonus:,.0f}")
+
+    total_salary = total_salary_without_bonus + achieved["bonus"].sum()
+    st.metric("Salary Cost", f"{total_salary / total_sales:.2%}")
+
+    st.subheader("Detail Harian (Tanpa Bonus)")
+    df["total_salary_harian"] = df["gapok"] + df["total_gaji_perbantuan"]
+
+    st.dataframe(
+        df[
+            [
+                "tanggal",
+                "outlet",
+                "sales",
+                "gapok",
+                "crew_perbantuan",
+                "total_gaji_perbantuan",
+                "total_salary_harian",
+            ]
+        ],
+        use_container_width=True,
     )

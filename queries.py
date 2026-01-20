@@ -125,7 +125,7 @@ SELECT
     sales,
     sales_bulanan,
     keterangan_bonus,
-    gapok,
+    gapok, gaji_perbantuan,
     bonus_crew_utama,
     gapok + bonus_crew_utama AS gaji_crew_utama,
     crew_perbantuan,

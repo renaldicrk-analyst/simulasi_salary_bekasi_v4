@@ -91,11 +91,11 @@ elif mode_key == "custom_3":
 
 elif mode_key == "custom_4":
     monthly_tier_1_sales = st.sidebar.number_input("Tier 1 ≥", value=30_000_000)
-    monthly_tier_1_pct = st.sidebar.number_input("Bonus % Tier 1", value=0.05, step=0.01)
+    monthly_tier_1_pct = st.sidebar.number_input("Bonus % Tier 1", value=0.05, step=0.005)
     monthly_tier_2_sales = st.sidebar.number_input("Tier 2 ≥", value=40_000_000)
-    monthly_tier_2_pct = st.sidebar.number_input("Bonus % Tier 2", value=0.08, step=0.01)
+    monthly_tier_2_pct = st.sidebar.number_input("Bonus % Tier 2", value=0.08, step=0.005)
     monthly_tier_3_sales = st.sidebar.number_input("Tier 3 ≥", value=60_000_000)
-    monthly_tier_3_pct = st.sidebar.number_input("Bonus % Tier 3", value=0.10, step=0.01)
+    monthly_tier_3_pct = st.sidebar.number_input("Bonus % Tier 3", value=0.10, step=0.005)
 
 # CREW PERBANTUAN
 st.sidebar.divider()

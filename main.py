@@ -45,9 +45,18 @@ start_date = dt.date(2025, 11, 1)
 end_date = start_date + dt.timedelta(days=days - 1)
 
 # ======================================================
-# GAPOK
+# GAPOK CREW UTAMA
 # ======================================================
-gapok = st.sidebar.number_input("Gapok / Hari", value=90_000, step=5_000)
+gapok = st.sidebar.number_input("Gapok Crew Utama / Hari", value=90_000, step=5_000)
+
+# ======================================================
+# GAPOK CREW PERBANTUAN (BARU)
+# ======================================================
+gaji_perbantuan_custom = st.sidebar.number_input(
+    "Gapok Crew Perbantuan / Hari",
+    value=90_000,
+    step=5_000
+)
 
 # ======================================================
 # DEFAULT PARAM (ANTI SQL ERROR)
@@ -97,15 +106,13 @@ crew_1_threshold = st.sidebar.number_input("Sales ≥ +1 Crew", value=1_700_000)
 crew_2_threshold = st.sidebar.number_input("Sales ≥ +2 Crew", value=2_700_000)
 crew_3_threshold = st.sidebar.number_input("Sales ≥ +3 Crew", value=3_700_000)
 
-# ======================================================
 # DESKRIPSI SKEMA
-# ======================================================
 if mode_key == "custom_1":
     st.info(
         f"""
         **Skema Custom 1 – Bonus Flat Harian**
 
-        - Gapok harian: **Rp {gapok:,.0f}**
+        - Gapok harian crew PIC: **Rp {gapok:,.0f}**
         - Bonus tetap **Rp {flat_bonus:,.0f} / hari**
         - Bonus diberikan jika **sales ≥ Rp {bonus_trigger:,.0f}**
 
@@ -123,7 +130,7 @@ elif mode_key == "custom_2":
         f"""
         **Skema Custom 2 – Bonus Berjenjang Harian**
 
-        - Gapok harian: **Rp {gapok:,.0f}**
+        - Gapok harian crew PIC: **Rp {gapok:,.0f}**
         - Bonus dihitung dari **persentase sales harian**
 
         **Jenjang Bonus:**
@@ -175,8 +182,9 @@ else:
         """
     )
 
+
 # ======================================================
-# PARAMS SQL
+# PARAMS SQL (QUERY TIDAK DIUBAH)
 # ======================================================
 params = {
     "branch": branch,
@@ -222,6 +230,16 @@ df = fetch_dataframe(SIMULATION_QUERY, params)
 if df.empty:
     st.warning("Data kosong")
     st.stop()
+
+# ======================================================
+# OVERRIDE GAJI PERBANTUAN (POST SQL)
+# ======================================================
+df["total_gaji_perbantuan"] = df["crew_perbantuan"] * gaji_perbantuan_custom
+df["total_salary"] = (
+    df["gapok"]
+    + df["bonus_crew_utama"]
+    + df["total_gaji_perbantuan"]
+)
 
 # ======================================================
 # ================= CUSTOM 1 & 2 ========================
@@ -286,12 +304,9 @@ else:
 
     achieved = bonus_df[bonus_df["bonus"] > 0]
 
-    # ======================================================
-    # HITUNG INFO ADDITIONAL
-    # ======================================================
-    total_outlet = df["outlet"].nunique()                      # total outlet unik
-    achieved_outlet = achieved["outlet"].nunique()            # outlet yang achieve
-    achievement_pct = (achieved_outlet / total_outlet) if total_outlet > 0 else 0  # persentase
+    total_outlet = df["outlet"].nunique()
+    achieved_outlet = achieved["outlet"].nunique()
+    achievement_pct = achieved_outlet / total_outlet if total_outlet else 0
 
     total_sales = df["sales"].sum()
     total_salary_without_bonus = df["total_salary"].sum()

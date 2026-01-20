@@ -12,9 +12,9 @@ WITH base AS (
       AND tanggal BETWEEN %(start_date)s AND %(end_date)s
 ),
 
--- =========================
+
 -- AGGREGATE BULANAN PER OUTLET
--- =========================
+
 monthly_sales AS (
     SELECT
         outlet,
@@ -34,9 +34,9 @@ salary_logic AS (
 
         %(gapok)s AS gapok,
 
-        -- =========================
+        
         -- KETERANGAN BONUS
-        -- =========================
+        
         CASE
             WHEN %(use_flat_bonus)s = 1
                  AND b.sales >= %(bonus_trigger)s
@@ -57,9 +57,9 @@ salary_logic AS (
             ELSE 'TIDAK DAPAT BONUS'
         END AS keterangan_bonus,
 
-        -- =========================
+        
         -- BONUS CREW UTAMA
-        -- =========================
+        
         CASE
             -- CUSTOM 1 – FLAT HARIAN
             WHEN %(use_flat_bonus)s = 1

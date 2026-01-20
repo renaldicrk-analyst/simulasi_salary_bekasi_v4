@@ -5,17 +5,17 @@ import pandas as pd
 from queries import SIMULATION_QUERY
 from db import fetch_dataframe
 
-# ======================================================
+
 # PAGE CONFIG
-# ======================================================
+
 st.set_page_config(page_title="Simulasi Penggajian", layout="wide")
 st.title("Simulasi Penggajian")
 
 branch = "Jakarta"
 
-# ======================================================
+
 # SIDEBAR – PILIH SKEMA
-# ======================================================
+
 st.sidebar.header("Skema Penggajian")
 
 mode_label = st.sidebar.radio(
@@ -37,31 +37,31 @@ mode_key = {
 
 st.sidebar.divider()
 
-# ======================================================
+
 # JUMLAH HARI
-# ======================================================
+
 days = st.sidebar.slider("Jumlah Hari Kerja", 1, 31, 26)
 start_date = dt.date(2025, 11, 1)
 end_date = start_date + dt.timedelta(days=days - 1)
 
-# ======================================================
-# GAPOK
-# ======================================================
-gapok = st.sidebar.number_input("Gapok / Hari", value=90_000, step=5_000)
 
-# ======================================================
+# GAPOK
+
+gapok = st.sidebar.number_input("Gapok / Hari", value=115_000, step=5_000)
+
+
 # GAJI CREW PERBANTUAN
-# ======================================================
+
 gaji_perbantuan = st.sidebar.number_input(
     "Gaji Crew Perbantuan / Hari",
-    value=75_000,
+    value=100_000,
     step=5_000
 )
 
 
-# ======================================================
+
 # DEFAULT PARAM (ANTI SQL ERROR)
-# ======================================================
+
 bonus_trigger = flat_bonus = 0
 tier_1_sales = tier_2_sales = tier_3_sales = 0
 tier_1_pct = tier_2_pct = tier_3_pct = 0.0
@@ -70,9 +70,9 @@ monthly_sales_trigger = monthly_fixed_bonus = 0
 monthly_tier_1_sales = monthly_tier_2_sales = monthly_tier_3_sales = 0
 monthly_tier_1_pct = monthly_tier_2_pct = monthly_tier_3_pct = 0.0
 
-# ======================================================
+
 # SETTING BONUS
-# ======================================================
+
 if mode_key == "custom_1":
     bonus_trigger = st.sidebar.number_input("Target Sales Bonus", value=1_000_000)
     flat_bonus = st.sidebar.number_input("Bonus / Hari", value=60_000)
@@ -283,9 +283,9 @@ else:
 
     achieved = bonus_df[bonus_df["bonus"] > 0]
 
-    # ======================================================
+    
     # HITUNG INFO ADDITIONAL
-    # ======================================================
+    
     total_outlet = df["outlet"].nunique()                      # total outlet unik
     achieved_outlet = achieved["outlet"].nunique()            # outlet yang achieve
     achievement_pct = (achieved_outlet / total_outlet) if total_outlet > 0 else 0  # persentase

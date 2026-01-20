@@ -1,16 +1,18 @@
-import psycopg2
+from sqlalchemy import create_engine
 import pandas as pd
 import streamlit as st
 
+@st.cache_data(show_spinner=False)
 def fetch_dataframe(query, params):
-    conn = psycopg2.connect(
-        host=st.secrets["db"]["host"],
-        port=st.secrets["db"]["port"],
-        dbname=st.secrets["db"]["dbname"],
-        user=st.secrets["db"]["user"],
-        password=st.secrets["db"]["password"],
+    engine = create_engine(
+        f"postgresql+psycopg2://{st.secrets['db']['user']}:"
+        f"{st.secrets['db']['password']}@"
+        f"{st.secrets['db']['host']}:"
+        f"{st.secrets['db']['port']}/"
+        f"{st.secrets['db']['dbname']}"
     )
 
-    df = pd.read_sql(query, conn, params=params)
-    conn.close()
+    with engine.connect() as conn:
+        df = pd.read_sql(query, conn, params=params)
+
     return df

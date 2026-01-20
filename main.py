@@ -175,10 +175,10 @@ params = {
     "end_date": end_date,
     "gapok": gapok,
 
-    "use_flat_bonus": 1 if mode_key == "custom_1" else 0,
-    "use_tier_bonus": 1 if mode_key == "custom_2" else 0,
-    "use_monthly_fixed": 1 if mode_key == "custom_3" else 0,
-    "use_monthly_tier": 1 if mode_key == "custom_4" else 0,
+    "use_flat_bonus": mode_key == "custom_1",
+    "use_tier_bonus": mode_key == "custom_2",
+    "use_monthly_fixed": mode_key == "custom_3",
+    "use_monthly_tier": mode_key == "custom_4",
 
     "bonus_trigger": bonus_trigger,
     "flat_bonus": flat_bonus,
@@ -200,11 +200,12 @@ params = {
     "monthly_tier_2_pct": monthly_tier_2_pct,
     "monthly_tier_3_pct": monthly_tier_3_pct,
 
-    "use_perbantuan": 1 if use_perbantuan else 0,
+    "use_perbantuan": use_perbantuan,
     "crew_1_threshold": crew_1_threshold,
     "crew_2_threshold": crew_2_threshold,
     "crew_3_threshold": crew_3_threshold,
 }
+
 
 # LOAD DATA
 df = fetch_dataframe(SIMULATION_QUERY, params)

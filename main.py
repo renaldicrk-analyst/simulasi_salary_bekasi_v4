@@ -225,11 +225,12 @@ params = {
     "end_date": end_date,
     "gapok": gapok,
     "gaji_perbantuan": gaji_perbantuan,
+
     "use_flat_bonus": 1 if mode_key == "custom_1" else 0,
     "use_tier_bonus": 1 if mode_key == "custom_2" else 0,
     "use_monthly_fixed": 1 if mode_key == "custom_3" else 0,
     "use_monthly_tier": 1 if mode_key == "custom_4" else 0,
-    "use_custom_5": 1 if mode_key == "custom_5" else 0,  # 🔹 TAMBAHAN
+    "use_custom_5": 1 if mode_key == "custom_5" else 0,
 
     "bonus_trigger": bonus_trigger,
     "flat_bonus": flat_bonus,
@@ -251,7 +252,7 @@ params = {
     "monthly_tier_2_pct": monthly_tier_2_pct,
     "monthly_tier_3_pct": monthly_tier_3_pct,
 
-    "custom_5_bonus": custom_5_bonus,  
+    # 🔹 CUSTOM 5 – ACHIEVEMENT BASED
     "achv_1_pct": achv_1_pct,
     "achv_2_pct": achv_2_pct,
     "achv_3_pct": achv_3_pct,
@@ -263,7 +264,7 @@ params = {
     "use_perbantuan": 1 if use_perbantuan else 0,
     "crew_1_threshold": crew_1_threshold,
     "crew_2_threshold": crew_2_threshold,
-    "crew_3_threshold": crew_3_threshold
+    "crew_3_threshold": crew_3_threshold,
 }
 
 # LOAD DATA

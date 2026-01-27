@@ -15,7 +15,7 @@ st.set_page_config(
 
 st.title("Simulasi Penggajian")
 
-branch = "Jakarta"
+branch = "Bandung"
 
 # ======================================================
 # SIDEBAR – PILIH SKEMA
@@ -48,7 +48,7 @@ st.sidebar.divider()
 # ======================================================
 days = st.sidebar.slider("Jumlah Hari Kerja", 1, 31, 26)
 
-start_date = dt.date(2025, 11, 1)
+start_date = dt.date(2025, 12, 1)
 end_date = start_date + dt.timedelta(days=days - 1)
 
 # ======================================================

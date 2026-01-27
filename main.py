@@ -66,7 +66,7 @@ monthly_tier_1_sales = monthly_tier_2_sales = monthly_tier_3_sales = 0
 monthly_tier_1_pct = monthly_tier_2_pct = monthly_tier_3_pct = 0.0
 
 custom_5_bonus = 0  # 🔹 TAMBAHAN
-# DEFAULT PARAM (ANTI SQL ERROR)
+# ===== DEFAULT ACHIEVEMENT =====
 achv_1_pct = achv_2_pct = achv_3_pct = 0
 bonus_1_pct = bonus_2_pct = bonus_3_pct = 0.0
 

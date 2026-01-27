@@ -314,7 +314,7 @@ else:
 
     bonus_df = (
         df.groupby("outlet")
-        .agg(sales_bulanan=("sales", "sum"), bonus=("bonus_crew_utama", "max"))
+        .agg(sales_bulanan=("sales", "sum"), bonus=("bonus_crew_utama", "sum"))
         .reset_index()
     )
 

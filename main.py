@@ -5,7 +5,6 @@ import pandas as pd
 from queries import SIMULATION_QUERY
 from db import fetch_dataframe
 
-
 # ======================================================
 # PAGE CONFIG
 # ======================================================
@@ -17,7 +16,6 @@ st.set_page_config(
 st.title("Simulasi Penggajian")
 
 branch = "Jakarta"
-
 
 # ======================================================
 # SIDEBAR – PILIH SKEMA
@@ -45,7 +43,6 @@ mode_key = {
 
 st.sidebar.divider()
 
-
 # ======================================================
 # JUMLAH HARI
 # ======================================================
@@ -53,7 +50,6 @@ days = st.sidebar.slider("Jumlah Hari Kerja", 1, 31, 26)
 
 start_date = dt.date(2025, 11, 1)
 end_date = start_date + dt.timedelta(days=days - 1)
-
 
 # ======================================================
 # GAPOK & PERBANTUAN
@@ -69,7 +65,6 @@ gaji_perbantuan = st.sidebar.number_input(
     value=100_000,
     step=5_000
 )
-
 
 # ======================================================
 # DEFAULT PARAM (ANTI SQL ERROR)
@@ -87,7 +82,6 @@ monthly_tier_1_sales = monthly_tier_2_sales = monthly_tier_3_sales = 0
 monthly_tier_1_pct = monthly_tier_2_pct = monthly_tier_3_pct = 0.0
 
 custom_5_bonus = 0
-
 
 # ======================================================
 # SETTING BONUS
@@ -139,30 +133,10 @@ elif mode_key == "custom_4":
     )
 
 elif mode_key == "custom_5":
-
-    st.sidebar.markdown("### Tier Achievement")
-
-    achv_1 = st.sidebar.number_input(
-        "Tier 1 Achievement ≥ (%)", value=100, step=5
+    custom_5_bonus = st.sidebar.number_input(
+        "Bonus Bulanan (Jika Achieve Target Outlet)",
+        value=1_500_000
     )
-    achv_1_pct = st.sidebar.number_input(
-        "Bonus % Tier 1", value=0.02, step=0.005
-    )
-
-    achv_2 = st.sidebar.number_input(
-        "Tier 2 Achievement ≥ (%)", value=110, step=5
-    )
-    achv_2_pct = st.sidebar.number_input(
-        "Bonus % Tier 2", value=0.03, step=0.005
-    )
-
-    achv_3 = st.sidebar.number_input(
-        "Tier 3 Achievement ≥ (%)", value=120, step=5
-    )
-    achv_3_pct = st.sidebar.number_input(
-        "Bonus % Tier 3", value=0.04, step=0.005
-    )
-
 
 # ======================================================
 # CREW PERBANTUAN
@@ -186,7 +160,6 @@ crew_3_threshold = st.sidebar.number_input(
     "Sales ≥ +3 Crew",
     value=3_700_000
 )
-
 
 # ======================================================
 # DESKRIPSI SKEMA
@@ -260,21 +233,18 @@ elif mode_key == "custom_4":
 
 else:  # 🔹 CUSTOM 5
     st.info(
-    f"""
-**Skema Custom 5 – Bonus Achievement Bulanan Outlet**
+        f"""
+**Skema Custom 5 – Bonus Target Bulanan per Outlet**
 - Gapok dibayar **harian**
-- Bonus dihitung dari **achievement terhadap target outlet**
-- Bonus dibayarkan **bulanan (tidak dialokasikan harian)**
+- Bonus **bulanan per outlet**
+- Target **berbeda tiap outlet** (master_target Nov 2025)
+- Bonus dibagi rata ke hari aktif outlet
 
-**Tier Bonus:**
-- ≥ {achv_1}% → **{achv_1_pct:.1%} × Sales Bulanan**
-- ≥ {achv_2}% → **{achv_2_pct:.1%} × Sales Bulanan**
-- ≥ {achv_3}% → **{achv_3_pct:.1%} × Sales Bulanan**
+**Bonus Bulanan:** Rp {custom_5_bonus:,.0f} / outlet (jika achieve)
 
-**Crew Perbantuan:** {"Aktif" if use_perbantuan else "Tidak digunakan"}
+**Crew Perbantuan:** {"Aktif (berdasarkan threshold sales harian)" if use_perbantuan else "Tidak digunakan"}
 """
-)
-
+    )
 
 # ======================================================
 # PARAMS SQL
@@ -313,20 +283,12 @@ params = {
     "monthly_tier_3_pct": monthly_tier_3_pct,
 
     "custom_5_bonus": custom_5_bonus,
-    "achv_1": achv_1,
-    "achv_2": achv_2,
-    "achv_3": achv_3,
-
-    "achv_1_pct": achv_1_pct,
-    "achv_2_pct": achv_2_pct,
-    "achv_3_pct": achv_3_pct,
 
     "use_perbantuan": 1 if use_perbantuan else 0,
     "crew_1_threshold": crew_1_threshold,
     "crew_2_threshold": crew_2_threshold,
     "crew_3_threshold": crew_3_threshold,
 }
-
 
 # LOAD DATA
 df = fetch_dataframe(SIMULATION_QUERY, params)

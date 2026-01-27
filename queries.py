@@ -45,7 +45,7 @@ salary_logic AS (
         b.sales,
         m.sales_bulanan,
         m.hari_aktif,
-        t.target AS target_bulanan, m.sales_bulanan / NULLIF(t.target, 0) AS achievement,
+        t.target AS target_bulanan,
 
         %(gapok)s AS gapok,
 
@@ -70,8 +70,8 @@ salary_logic AS (
                 THEN 'BONUS JENJANG (BULANAN)'
 
             WHEN %(use_custom_5)s = 1
-            AND (m.sales_bulanan / NULLIF(t.target, 0)) >= (%(achv_1)s / 100.0)
-            THEN 'BONUS ACHIEVEMENT BULANAN'
+                 AND m.sales_bulanan >= t.target
+                THEN 'BONUS TARGET BULANAN (OUTLET)'
 
             ELSE 'TIDAK DAPAT BONUS'
         END AS keterangan_bonus,
@@ -117,18 +117,9 @@ salary_logic AS (
                 THEN (m.sales_bulanan * %(monthly_tier_1_pct)s) / m.hari_aktif
 
             -- CUSTOM 5 – TARGET BULANAN OUTLET (DIALOKASI HARIAN)
-            -- CUSTOM 5 – BONUS ACHIEVEMENT BULANAN
             WHEN %(use_custom_5)s = 1
-                AND (m.sales_bulanan / NULLIF(t.target, 0)) >= (%(achv_3)s / 100.0)
-                THEN m.sales_bulanan * %(achv_3_pct)s
-
-            WHEN %(use_custom_5)s = 1
-                AND (m.sales_bulanan / NULLIF(t.target, 0)) >= (%(achv_2)s / 100.0)
-                THEN m.sales_bulanan * %(achv_2_pct)s
-
-            WHEN %(use_custom_5)s = 1
-                AND (m.sales_bulanan / NULLIF(t.target, 0)) >= (%(achv_1)s / 100.0)
-                THEN m.sales_bulanan * %(achv_1_pct)s
+                 AND m.sales_bulanan >= t.target
+                THEN %(custom_5_bonus)s / m.hari_aktif
 
             ELSE 0
         END AS bonus_crew_utama

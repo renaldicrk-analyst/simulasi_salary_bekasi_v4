@@ -94,8 +94,7 @@ elif mode_key == "custom_4":
     monthly_tier_3_pct = st.sidebar.number_input("Bonus % Tier 3", value=0.10, step=0.005)
 
 elif mode_key == "custom_5":  # 🔹 TAMBAHAN
-    elif mode_key == "custom_5":
-    st.sidebar.markdown("### Tier Achievement Target")
+      st.sidebar.markdown("### Tier Achievement Target")
 
     achv_1_pct = st.sidebar.number_input(
         "Achievement ≥ (%)", value=100, step=5

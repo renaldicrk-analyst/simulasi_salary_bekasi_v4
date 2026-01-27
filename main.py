@@ -86,7 +86,7 @@ monthly_fixed_bonus = 0
 monthly_tier_1_sales = monthly_tier_2_sales = monthly_tier_3_sales = 0
 monthly_tier_1_pct = monthly_tier_2_pct = monthly_tier_3_pct = 0.0
 
-# custom_5_bonus = 0
+custom_5_bonus = 0
 
 
 # ======================================================

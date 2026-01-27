@@ -325,7 +325,7 @@ if mode_key in ["custom_1", "custom_2"]:
     c1, c2, c3 = st.columns(3)
     c1.metric("Total Sales", f"Rp {total_sales:,.0f}")
     c2.metric("Total Salary", f"Rp {total_salary:,.0f}")
-    c3.metric("Total Bonus", f"Rp {total_bonus:,.0f}")
+    # c3.metric("Total Bonus", f"Rp {total_bonus:,.0f}")
 
     st.metric("Salary Cost", f"{total_salary / total_sales:.2%}")
 
@@ -380,9 +380,11 @@ else:
         f"Rp {achieved['bonus'].sum():,.0f}",
     )
     c5.metric("Total Sales", f"Rp {total_sales:,.0f}")
+    total_salary = total_salary_without_bonus + achieved["bonus"].sum()
+
     c6.metric(
-        "Total Salary (Tanpa Bonus)",
-        f"Rp {total_salary_without_bonus:,.0f}",
+        "Total Salary",
+        f"Rp {total_salary:,.0f}"
     )
 
     total_salary = total_salary_without_bonus + achieved["bonus"].sum()

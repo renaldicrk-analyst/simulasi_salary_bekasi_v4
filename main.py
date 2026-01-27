@@ -14,8 +14,6 @@ st.set_page_config(
 )
 
 st.title("Simulasi Penggajian")
-achv_tier_1 = achv_tier_2 = achv_tier_3 = 0.0
-achv_tier_1_pct = achv_tier_2_pct = achv_tier_3_pct = 0.0
 
 branch = "Jakarta"
 
@@ -32,8 +30,6 @@ mode_label = st.sidebar.radio(
         "Custom 3 – Bonus Fixed Bulanan",
         "Custom 4 – Bonus Berjenjang Bulanan",
         "Custom 5 – Bonus Target Bulanan Outlet",
-        "Custom 6 – Bonus Achievement Target Bulanan",
-
     ]
 )
 
@@ -43,8 +39,6 @@ mode_key = {
     "Custom 3 – Bonus Fixed Bulanan": "custom_3",
     "Custom 4 – Bonus Berjenjang Bulanan": "custom_4",
     "Custom 5 – Bonus Target Bulanan Outlet": "custom_5",
-    "Custom 6 – Bonus Achievement Target Bulanan": "custom_6",
-
 }[mode_label]
 
 st.sidebar.divider()
@@ -143,28 +137,6 @@ elif mode_key == "custom_5":
         "Bonus Bulanan (Jika Achieve Target Outlet)",
         value=1_500_000
     )
-elif mode_key == "custom_6":
-    achv_tier_1 = st.sidebar.number_input(
-        "Achievement ≥ (%) Tier 1", value=1.00, step=0.05
-    )
-    achv_tier_1_pct = st.sidebar.number_input(
-        "Bonus % Tier 1", value=0.02, step=0.005
-    )
-
-    achv_tier_2 = st.sidebar.number_input(
-        "Achievement ≥ (%) Tier 2", value=1.10, step=0.05
-    )
-    achv_tier_2_pct = st.sidebar.number_input(
-        "Bonus % Tier 2", value=0.03, step=0.005
-    )
-
-    achv_tier_3 = st.sidebar.number_input(
-        "Achievement ≥ (%) Tier 3", value=1.20, step=0.05
-    )
-    achv_tier_3_pct = st.sidebar.number_input(
-        "Bonus % Tier 3", value=0.04, step=0.005
-    )
-
 
 # ======================================================
 # CREW PERBANTUAN
@@ -273,23 +245,6 @@ else:  # 🔹 CUSTOM 5
 **Crew Perbantuan:** {"Aktif (berdasarkan threshold sales harian)" if use_perbantuan else "Tidak digunakan"}
 """
     )
-elif mode_key == "custom_6":
-    st.info(
-        f"""
-**Skema Custom 6 – Bonus Achievement Target Bulanan**
-- Bonus dihitung dari **persentase pencapaian target outlet**
-- Bonus = **% × Sales Bulanan**
-- Bonus dibagi rata ke **hari aktif outlet**
-
-**Tier Achievement:**
-- ≥ {achv_tier_1:.0%} → {achv_tier_1_pct:.1%}
-- ≥ {achv_tier_2:.0%} → {achv_tier_2_pct:.1%}
-- ≥ {achv_tier_3:.0%} → {achv_tier_3_pct:.1%}
-
-**Crew Perbantuan:** {"Aktif" if use_perbantuan else "Tidak digunakan"}
-"""
-    )
-
 
 # ======================================================
 # PARAMS SQL
@@ -319,15 +274,6 @@ params = {
 
     "monthly_sales_trigger": monthly_sales_trigger,
     "monthly_fixed_bonus": monthly_fixed_bonus,
-    "use_custom_6": 1 if mode_key == "custom_6" else 0,
-
-    "achv_tier_1": achv_tier_1,
-    "achv_tier_2": achv_tier_2,
-    "achv_tier_3": achv_tier_3,
-    "achv_tier_1_pct": achv_tier_1_pct,
-    "achv_tier_2_pct": achv_tier_2_pct,
-    "achv_tier_3_pct": achv_tier_3_pct,
-
 
     "monthly_tier_1_sales": monthly_tier_1_sales,
     "monthly_tier_2_sales": monthly_tier_2_sales,

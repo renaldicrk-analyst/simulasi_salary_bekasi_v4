@@ -45,7 +45,7 @@ salary_logic AS (
         b.sales,
         m.sales_bulanan,
         m.hari_aktif,
-        t.target AS target_bulanan, m.sales_bulanan / NULLIF(t.target, 0) AS achievement_ratio,
+        t.target AS target_bulanan,
 
         %(gapok)s AS gapok,
 
@@ -72,10 +72,6 @@ salary_logic AS (
             WHEN %(use_custom_5)s = 1
                  AND m.sales_bulanan >= t.target
                 THEN 'BONUS TARGET BULANAN (OUTLET)'
-            WHEN %(use_custom_6)s = 1
-                AND (m.sales_bulanan / NULLIF(t.target,0)) >= %(achv_tier_1)s
-            T   THEN 'BONUS ACHIEVEMENT TARGET BULANAN'
-
 
             ELSE 'TIDAK DAPAT BONUS'
         END AS keterangan_bonus,

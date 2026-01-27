@@ -173,59 +173,86 @@ crew_3_threshold = st.sidebar.number_input(
 # DESKRIPSI SKEMA
 # ======================================================
 if mode_key == "custom_1":
-    st.info(f"""
-    **Skema Custom 1 – Bonus Flat Harian**
-    - Gapok harian: **Rp {gapok:,.0f}**
-    - Bonus tetap **Rp {flat_bonus:,.0f} / hari**
-    - Bonus diberikan jika **sales ≥ Rp {bonus_trigger:,.0f}**
+    st.info(
+        f"""
+**Skema Custom 1 – Bonus Flat Harian**
+- Gapok harian: **Rp {gapok:,.0f}**
+- Bonus tetap **Rp {flat_bonus:,.0f} / hari**
+- Bonus diberikan jika **sales ≥ Rp {bonus_trigger:,.0f}**
 
-    **Rumus:**
-    > Gaji Harian = Gapok + Bonus Flat  
-    > Total Gaji = Gaji Harian × Jumlah Hari Kerja
+**Rumus:**
+> Gaji Harian = Gapok + Bonus Flat  
+> Total Gaji = Gaji Harian × Jumlah Hari Kerja
 
-    **Crew Perbantuan:** {"Aktif" if use_perbantuan else "Tidak digunakan"}
-    """)
+**Crew Perbantuan:** {"Aktif (berdasarkan threshold sales)" if use_perbantuan else "Tidak digunakan"}
+"""
+    )
 
 elif mode_key == "custom_2":
-    st.info(f"""
-    **Skema Custom 2 – Bonus Berjenjang Harian**
-    - Gapok harian: **Rp {gapok:,.0f}**
-    - Bonus dihitung dari **persentase sales harian**
+    st.info(
+        f"""
+**Skema Custom 2 – Bonus Berjenjang Harian**
+- Gapok harian: **Rp {gapok:,.0f}**
+- Bonus dihitung dari **persentase sales harian**
 
-    **Jenjang Bonus:**
-    - ≥ Rp {tier_1_sales:,.0f} → **{tier_1_pct:.0%}**
-    - ≥ Rp {tier_2_sales:,.0f} → **{tier_2_pct:.0%}**
-    - ≥ Rp {tier_3_sales:,.0f} → **{tier_3_pct:.0%}**
+**Jenjang Bonus:**
+- ≥ Rp {tier_1_sales:,.0f} → **{tier_1_pct:.0%}**
+- ≥ Rp {tier_2_sales:,.0f} → **{tier_2_pct:.0%}**
+- ≥ Rp {tier_3_sales:,.0f} → **{tier_3_pct:.0%}**
 
-    **Crew Perbantuan:** {"Aktif" if use_perbantuan else "Tidak digunakan"}
-    """)
+**Rumus:**
+> Gaji Harian = Gapok + (Sales × Persentase Bonus)
+
+**Crew Perbantuan:** {"Aktif (berdasarkan threshold sales)" if use_perbantuan else "Tidak digunakan"}
+"""
+    )
 
 elif mode_key == "custom_3":
-    st.info(f"""
-    **Skema Custom 3 – Bonus Fixed Bulanan**
-    - Gapok dibayar **harian**
-    - Bonus **bulanan tetap** jika outlet mencapai target
-    - Bonus **tidak masuk gaji harian**
+    st.info(
+        f"""
+**Skema Custom 3 – Bonus Fixed Bulanan**
+- Gapok dibayar **harian**
+- Bonus **bulanan tetap** jika outlet mencapai target
+- Bonus **tidak masuk gaji harian**
 
-    **Target Bulanan:**
-    ≥ Rp {monthly_sales_trigger:,.0f} → Bonus **Rp {monthly_fixed_bonus:,.0f}**
-    """)
+**Target Bulanan:**
+≥ Rp {monthly_sales_trigger:,.0f} → Bonus **Rp {monthly_fixed_bonus:,.0f}**
+
+**Crew Perbantuan:** {"Aktif (berdasarkan threshold sales harian)" if use_perbantuan else "Tidak digunakan"}
+"""
+    )
 
 elif mode_key == "custom_4":
-    st.info(f"""
-    **Skema Custom 4 – Bonus Berjenjang Bulanan**
-    - Gapok dibayar **harian**
-    - Bonus dihitung dari **total sales bulanan**
-    """)
+    st.info(
+        f"""
+**Skema Custom 4 – Bonus Berjenjang Bulanan**
+- Gapok dibayar **harian**
+- Bonus dihitung dari **total sales bulanan**
+- Bonus **tidak masuk gaji harian**
 
-else:
-    st.info(f"""
-    **Skema Custom 5 – Bonus Target Bulanan per Outlet**
-    - Target berbeda tiap outlet
-    - Bonus dibagi rata ke hari aktif outlet
+**Jenjang Bonus Bulanan:**
+- ≥ Rp {monthly_tier_1_sales:,.0f} → **{monthly_tier_1_pct:.0%}**
+- ≥ Rp {monthly_tier_2_sales:,.0f} → **{monthly_tier_2_pct:.0%}**
+- ≥ Rp {monthly_tier_3_sales:,.0f} → **{monthly_tier_3_pct:.0%}**
 
-    **Bonus Bulanan:** Rp {custom_5_bonus:,.0f} / outlet
-    """)
+**Crew Perbantuan:** {"Aktif (berdasarkan threshold sales harian)" if use_perbantuan else "Tidak digunakan"}
+"""
+    )
+
+else:  # 🔹 CUSTOM 5
+    st.info(
+        f"""
+**Skema Custom 5 – Bonus Target Bulanan per Outlet**
+- Gapok dibayar **harian**
+- Bonus **bulanan per outlet**
+- Target **berbeda tiap outlet** (master_target Nov 2025)
+- Bonus dibagi rata ke hari aktif outlet
+
+**Bonus Bulanan:** Rp {custom_5_bonus:,.0f} / outlet (jika achieve)
+
+**Crew Perbantuan:** {"Aktif (berdasarkan threshold sales harian)" if use_perbantuan else "Tidak digunakan"}
+"""
+    )
 
 
 # ======================================================
@@ -273,21 +300,34 @@ params = {
 }
 
 
-# ======================================================
 # LOAD DATA
-# ======================================================
 df = fetch_dataframe(SIMULATION_QUERY, params)
 
 if df.empty:
     st.warning("Data kosong")
     st.stop()
 
-
-# ======================================================
-# CUSTOM 1 & 2
-# ======================================================
+# ================= CUSTOM 1 & 2 ========================
 if mode_key in ["custom_1", "custom_2"]:
-    st.subheader("Ringkasan")
+
+    st.subheader("Range Total Salary")
+    min_salary = gapok * days
+    max_salary = (gapok + df["bonus_crew_utama"].max()) * days
+
+    c1, c2 = st.columns(2)
+    c1.metric("Minimum", f"Rp {min_salary:,.0f}")
+    c2.metric("Maksimum", f"Rp {max_salary:,.0f}")
+
+    st.subheader("Distribusi Bonus")
+    dist = df["keterangan_bonus"].value_counts().reset_index()
+    dist.columns = ["Status Bonus", "Jumlah Hari"]
+    dist["Persentase"] = (
+        dist["Jumlah Hari"] / dist["Jumlah Hari"].sum()
+    ).round(2)
+
+    st.dataframe(dist, use_container_width=True)
+
+    st.subheader("Ringkasan Total")
     total_sales = df["sales"].sum()
     total_salary = df["total_salary"].sum()
     total_bonus = df["bonus_crew_utama"].sum()
@@ -297,15 +337,30 @@ if mode_key in ["custom_1", "custom_2"]:
     c2.metric("Total Salary", f"Rp {total_salary:,.0f}")
     c3.metric("Total Bonus", f"Rp {total_bonus:,.0f}")
 
-    st.dataframe(df, use_container_width=True)
+    st.metric("Salary Cost", f"{total_salary / total_sales:.2%}")
 
+    st.subheader("Detail Harian")
+    st.dataframe(
+        df[
+            [
+                "tanggal",
+                "outlet",
+                "sales",
+                "keterangan_bonus",
+                "gapok",
+                "total_gaji_perbantuan",
+                "bonus_crew_utama",
+                "crew_perbantuan",
+                "total_salary",
+            ]
+        ],
+        use_container_width=True,
+    )
 
-# ======================================================
-# CUSTOM 3, 4 & 5
-# ======================================================
+# ================= CUSTOM 3, 4 & 5 ========================
 else:
-    st.subheader("Ringkasan Bonus Bulanan")
 
+    st.subheader("Ringkasan Bonus Bulanan")
     bonus_df = (
         df.groupby("outlet")
         .agg(
@@ -315,4 +370,50 @@ else:
         .reset_index()
     )
 
-    st.dataframe(bonus_df, use_container_width=True)
+    achieved = bonus_df[bonus_df["bonus"] > 0]
+
+    total_outlet = df["outlet"].nunique()
+    achieved_outlet = achieved["outlet"].nunique()
+    achievement_pct = (
+        achieved_outlet / total_outlet if total_outlet > 0 else 0
+    )
+
+    total_sales = df["sales"].sum()
+    total_salary_without_bonus = df["total_salary"].sum()
+
+    c1, c2, c3, c4, c5, c6 = st.columns(6)
+    c1.metric("Total Outlet", total_outlet)
+    c2.metric("Outlet Achieve Target", achieved_outlet)
+    c3.metric("% Achieve Target", f"{achievement_pct:.1%}")
+    c4.metric(
+        "Total Bonus Bulanan",
+        f"Rp {achieved['bonus'].sum():,.0f}",
+    )
+    c5.metric("Total Sales", f"Rp {total_sales:,.0f}")
+    c6.metric(
+        "Total Salary (Tanpa Bonus)",
+        f"Rp {total_salary_without_bonus:,.0f}",
+    )
+
+    total_salary = total_salary_without_bonus + achieved["bonus"].sum()
+    st.metric("Salary Cost", f"{total_salary / total_sales:.2%}")
+
+    st.subheader("Detail Harian (Tanpa Bonus)")
+    df["total_salary_harian"] = (
+        df["gapok"] + df["total_gaji_perbantuan"]
+    )
+
+    st.dataframe(
+        df[
+            [
+                "tanggal",
+                "outlet",
+                "sales",
+                "gapok",
+                "crew_perbantuan",
+                "total_gaji_perbantuan",
+                "total_salary_harian",
+            ]
+        ],
+        use_container_width=True,
+    )

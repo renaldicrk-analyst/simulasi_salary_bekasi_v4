@@ -273,22 +273,7 @@ else:  # 🔹 CUSTOM 5
 **Crew Perbantuan:** {"Aktif (berdasarkan threshold sales harian)" if use_perbantuan else "Tidak digunakan"}
 """
     )
-elif mode_key == "custom_6":
-    st.info(
-        f"""
-**Skema Custom 6 – Bonus Achievement Target Bulanan**
-- Bonus dihitung dari **persentase pencapaian target outlet**
-- Bonus = **% × Sales Bulanan**
-- Bonus dibagi rata ke **hari aktif outlet**
 
-**Tier Achievement:**
-- ≥ {achv_tier_1:.0%} → {achv_tier_1_pct:.1%}
-- ≥ {achv_tier_2:.0%} → {achv_tier_2_pct:.1%}
-- ≥ {achv_tier_3:.0%} → {achv_tier_3_pct:.1%}
-
-**Crew Perbantuan:** {"Aktif" if use_perbantuan else "Tidak digunakan"}
-"""
-    )
 
 
 # ======================================================

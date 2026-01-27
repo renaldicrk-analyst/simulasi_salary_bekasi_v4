@@ -139,9 +139,27 @@ elif mode_key == "custom_4":
     )
 
 elif mode_key == "custom_5":
-    custom_5_bonus = st.sidebar.number_input(
-        "Bonus Bulanan (Jika Achieve Target Outlet)",
-        value=1_500_000
+    st.sidebar.markdown("### Tier Achievement Target")
+
+    achv_1_pct = st.sidebar.number_input(
+        "Achievement ≥ (%)", value=100, step=5
+    )
+    bonus_1_pct = st.sidebar.number_input(
+        "Bonus % dari Sales", value=0.02, step=0.005
+    )
+
+    achv_2_pct = st.sidebar.number_input(
+        "Achievement ≥ (%) ", value=110, step=5
+    )
+    bonus_2_pct = st.sidebar.number_input(
+        "Bonus % dari Sales ", value=0.03, step=0.005
+    )
+
+    achv_3_pct = st.sidebar.number_input(
+        "Achievement ≥ (%)  ", value=120, step=5
+    )
+    bonus_3_pct = st.sidebar.number_input(
+        "Bonus % dari Sales  ", value=0.04, step=0.005
     )
 
 
@@ -241,18 +259,20 @@ elif mode_key == "custom_4":
 
 else:  # 🔹 CUSTOM 5
     st.info(
-        f"""
-**Skema Custom 5 – Bonus Target Bulanan per Outlet**
-- Gapok dibayar **harian**
-- Bonus **bulanan per outlet**
-- Target **berbeda tiap outlet** (master_target Nov 2025)
-- Bonus dibagi rata ke hari aktif outlet
+    f"""
+    **Skema Custom 5 – Bonus Achievement Target Bulanan Outlet**
 
-**Bonus Bulanan:** Rp {custom_5_bonus:,.0f} / outlet (jika achieve)
+    - Gapok dibayar **harian**
+    - Bonus dihitung dari **persentase sales bulanan**
+    - Berdasarkan **achievement terhadap target outlet**
+    - Bonus dialokasikan **rata per hari aktif outlet**
 
-**Crew Perbantuan:** {"Aktif (berdasarkan threshold sales harian)" if use_perbantuan else "Tidak digunakan"}
-"""
-    )
+    **Tier Achievement:**
+    - ≥ {achv_1_pct}% target → **{bonus_1_pct:.1%} dari sales**
+    - ≥ {achv_2_pct}% target → **{bonus_2_pct:.1%} dari sales**
+    - ≥ {achv_3_pct}% target → **{bonus_3_pct:.1%} dari sales**
+    """
+)
 
 
 # ======================================================
@@ -291,7 +311,13 @@ params = {
     "monthly_tier_2_pct": monthly_tier_2_pct,
     "monthly_tier_3_pct": monthly_tier_3_pct,
 
-    "custom_5_bonus": custom_5_bonus,
+    "achv_1_pct": achv_1_pct,
+    "achv_2_pct": achv_2_pct,
+    "achv_3_pct": achv_3_pct,
+
+    "bonus_1_pct": bonus_1_pct,
+    "bonus_2_pct": bonus_2_pct,
+    "bonus_3_pct": bonus_3_pct,
 
     "use_perbantuan": 1 if use_perbantuan else 0,
     "crew_1_threshold": crew_1_threshold,

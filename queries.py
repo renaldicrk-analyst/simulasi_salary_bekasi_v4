@@ -8,8 +8,8 @@ WITH base AS (
         branch,
         sales
     FROM mv_manpower_cost_v2
-    WHERE branch = %(branch)s
-      AND tanggal BETWEEN %(start_date)s AND %(end_date)s
+    WHERE branch = :branch
+        AND tanggal BETWEEN :start_date AND :end_date
 ),
 
 -- AGGREGATE BULANAN PER OUTLET
@@ -72,10 +72,9 @@ salary_logic AS (
                  AND m.sales_bulanan >= %(monthly_tier_1_sales)s
                 THEN 'BONUS JENJANG (BULANAN)'
 
-            WHEN %(use_custom_5)s = 1
-                 AND rn = 1
-                 AND (m.sales_bulanan / NULLIF(t.target, 0)) * 100 >= %(achv_1_pct)s
-                THEN 'BONUS ACHIEVEMENT TARGET (OUTLET)'
+            WHEN :use_custom_5 = 1
+            AND rn = 1
+            AND (m.sales_bulanan / NULLIF(t.target, 0)) * 100 >= :achv_1_pct
 
             ELSE 'TIDAK DAPAT BONUS'
         END AS keterangan_bonus,

@@ -5,14 +5,12 @@ import pandas as pd
 from queries import SIMULATION_QUERY
 from db import fetch_dataframe
 
-
 # PAGE CONFIG
 
 st.set_page_config(page_title="Simulasi Penggajian", layout="wide")
 st.title("Simulasi Penggajian")
 
 branch = "Jakarta"
-
 
 # SIDEBAR – PILIH SKEMA
 
@@ -39,18 +37,15 @@ mode_key = {
 
 st.sidebar.divider()
 
-
 # JUMLAH HARI
 
 days = st.sidebar.slider("Jumlah Hari Kerja", 1, 31, 26)
 start_date = dt.date(2025, 11, 1)
 end_date = start_date + dt.timedelta(days=days - 1)
 
-
 # GAPOK
 
 gapok = st.sidebar.number_input("Gapok / Hari", value=115_000, step=5_000)
-
 
 # GAJI CREW PERBANTUAN
 
@@ -59,7 +54,6 @@ gaji_perbantuan = st.sidebar.number_input(
     value=100_000,
     step=5_000
 )
-
 
 # DEFAULT PARAM (ANTI SQL ERROR)
 
@@ -72,9 +66,6 @@ monthly_tier_1_sales = monthly_tier_2_sales = monthly_tier_3_sales = 0
 monthly_tier_1_pct = monthly_tier_2_pct = monthly_tier_3_pct = 0.0
 
 custom_5_bonus = 0  # 🔹 TAMBAHAN
-c5_tier_1_ach = c5_tier_2_ach = c5_tier_3_ach = 0.0
-c5_tier_1_pct = c5_tier_2_pct = c5_tier_3_pct = 0.0
-
 
 # SETTING BONUS
 
@@ -102,44 +93,11 @@ elif mode_key == "custom_4":
     monthly_tier_3_sales = st.sidebar.number_input("Tier 3 ≥", value=60_000_000)
     monthly_tier_3_pct = st.sidebar.number_input("Bonus % Tier 3", value=0.10, step=0.005)
 
-elif mode_key == "custom_5":
-
-    st.sidebar.markdown("### Tier Achievement & Bonus %")
-
-    c5_tier_1_ach = st.sidebar.number_input(
-        "Achieve ≥",
-        value=1.00,
-        step=0.05
+elif mode_key == "custom_5":  # 🔹 TAMBAHAN
+    custom_5_bonus = st.sidebar.number_input(
+        "Bonus Bulanan (Jika Achieve Target Outlet)",
+        value=1_500_000
     )
-    c5_tier_1_pct = st.sidebar.number_input(
-        "Bonus %",
-        value=0.04,
-        step=0.005
-    )
-
-    c5_tier_2_ach = st.sidebar.number_input(
-        "Achieve ≥ ",
-        value=1.10,
-        step=0.05
-    )
-    c5_tier_2_pct = st.sidebar.number_input(
-        "Bonus % ",
-        value=0.05,
-        step=0.005
-    )
-
-    c5_tier_3_ach = st.sidebar.number_input(
-        "Achieve ≥  ",
-        value=1.20,
-        step=0.05
-    )
-    c5_tier_3_pct = st.sidebar.number_input(
-        "Bonus %  ",
-        value=0.06,
-        step=0.005
-    )
-
-
 
 # CREW PERBANTUAN
 st.sidebar.divider()
@@ -148,7 +106,6 @@ use_perbantuan = st.sidebar.checkbox("Gunakan Crew Perbantuan", value=True)
 crew_1_threshold = st.sidebar.number_input("Sales ≥ +1 Crew", value=1_700_000)
 crew_2_threshold = st.sidebar.number_input("Sales ≥ +2 Crew", value=2_700_000)
 crew_3_threshold = st.sidebar.number_input("Sales ≥ +3 Crew", value=3_700_000)
-
 
 # DESKRIPSI SKEMA
 if mode_key == "custom_1":
@@ -244,7 +201,6 @@ else:  # 🔹 CUSTOM 5
         """
     )
 
-
 # PARAMS SQL
 params = {
     "branch": branch,
@@ -279,12 +235,6 @@ params = {
     "monthly_tier_3_pct": monthly_tier_3_pct,
 
     "custom_5_bonus": custom_5_bonus,  # 🔹 TAMBAHAN
-    "c5_tier_1_ach": c5_tier_1_ach,
-    "c5_tier_2_ach": c5_tier_2_ach,
-    "c5_tier_3_ach": c5_tier_3_ach,
-    "c5_tier_1_pct": c5_tier_1_pct,
-    "c5_tier_2_pct": c5_tier_2_pct,
-    "c5_tier_3_pct": c5_tier_3_pct,
 
     "use_perbantuan": 1 if use_perbantuan else 0,
     "crew_1_threshold": crew_1_threshold,
@@ -292,13 +242,11 @@ params = {
     "crew_3_threshold": crew_3_threshold
 }
 
-
 # LOAD DATA
 df = fetch_dataframe(SIMULATION_QUERY, params)
 if df.empty:
     st.warning("Data kosong")
     st.stop()
-
 
 # ================= CUSTOM 1 & 2 ========================
 if mode_key in ["custom_1", "custom_2"]:
@@ -346,31 +294,15 @@ if mode_key in ["custom_1", "custom_2"]:
         use_container_width=True,
     )
 
-
-# ================= CUSTOM 3, 4 & 5 ========================
 # ================= CUSTOM 3, 4 & 5 ========================
 else:
     st.subheader("Ringkasan Bonus Bulanan")
 
-    # 🔥 BEDAIN AGREGASI KHUSUS CUSTOM 5
-    if mode_key == "custom_5":
-        bonus_df = (
-            df.groupby("outlet")
-            .agg(
-                sales_bulanan=("sales", "sum"),
-                bonus=("bonus_crew_utama", "max")  # ✅ KUNCI FIX CUSTOM 5
-            )
-            .reset_index()
-        )
-    else:
-        bonus_df = (
-            df.groupby("outlet")
-            .agg(
-                sales_bulanan=("sales", "sum"),
-                bonus=("bonus_crew_utama", "sum")  # ✅ TETAP UNTUK CUSTOM 3 & 4
-            )
-            .reset_index()
-        )
+    bonus_df = (
+        df.groupby("outlet")
+        .agg(sales_bulanan=("sales", "sum"), bonus=("bonus_crew_utama", "sum"))
+        .reset_index()
+    )
 
     achieved = bonus_df[bonus_df["bonus"] > 0]
 

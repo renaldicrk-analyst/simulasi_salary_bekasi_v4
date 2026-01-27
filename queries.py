@@ -8,8 +8,8 @@ WITH base AS (
         branch,
         sales
     FROM mv_manpower_cost_v2
-    WHERE branch = :branch
-        AND tanggal BETWEEN :start_date AND :end_date
+    WHERE branch = %(branch)s
+      AND tanggal BETWEEN %(start_date)s AND %(end_date)s
 ),
 
 -- AGGREGATE BULANAN PER OUTLET
@@ -38,23 +38,15 @@ salary_logic AS (
         b.tanggal,
         b.outlet,
         b.sales,
-
         m.sales_bulanan,
         m.hari_aktif,
-        t.target AS target_bulanan,
-
-        (m.sales_bulanan / NULLIF(t.target, 0)) * 100 AS achievement_pct,
-
-        ROW_NUMBER() OVER (
-            PARTITION BY b.outlet
-            ORDER BY b.tanggal
-        ) AS rn,
+        t.target AS target_bulanan,         -- 🔹 TAMBAHAN
 
         %(gapok)s AS gapok,
 
-        -- =========================
+        
         -- KETERANGAN BONUS
-        -- =========================
+        
         CASE
             WHEN %(use_flat_bonus)s = 1
                  AND b.sales >= %(bonus_trigger)s
@@ -72,16 +64,16 @@ salary_logic AS (
                  AND m.sales_bulanan >= %(monthly_tier_1_sales)s
                 THEN 'BONUS JENJANG (BULANAN)'
 
-            WHEN :use_custom_5 = 1
-            AND rn = 1
-            AND (m.sales_bulanan / NULLIF(t.target, 0)) * 100 >= :achv_1_pct
+            WHEN %(use_custom_5)s = 1
+                 AND m.sales_bulanan >= t.target
+                THEN 'BONUS TARGET BULANAN (OUTLET)'   -- 🔹 TAMBAHAN
 
             ELSE 'TIDAK DAPAT BONUS'
         END AS keterangan_bonus,
 
-        -- =========================
+        
         -- BONUS CREW UTAMA
-        -- =========================
+        
         CASE
             -- CUSTOM 1 – FLAT HARIAN
             WHEN %(use_flat_bonus)s = 1
@@ -119,31 +111,20 @@ salary_logic AS (
                  AND m.sales_bulanan >= %(monthly_tier_1_sales)s
                 THEN (m.sales_bulanan * %(monthly_tier_1_pct)s) / m.hari_aktif
 
-            -- CUSTOM 5 – BONUS ACHIEVEMENT (FULL, 1x / OUTLET)
+            -- CUSTOM 5 – TARGET BULANAN OUTLET (DIALOKASI HARIAN) 🔹 TAMBAHAN
             WHEN %(use_custom_5)s = 1
-                 AND rn = 1
-                 AND (m.sales_bulanan / NULLIF(t.target, 0)) * 100 >= %(achv_3_pct)s
-                THEN m.sales_bulanan * %(bonus_3_pct)s
-
-            WHEN %(use_custom_5)s = 1
-                 AND rn = 1
-                 AND (m.sales_bulanan / NULLIF(t.target, 0)) * 100 >= %(achv_2_pct)s
-                THEN m.sales_bulanan * %(bonus_2_pct)s
-
-            WHEN %(use_custom_5)s = 1
-                 AND rn = 1
-                 AND (m.sales_bulanan / NULLIF(t.target, 0)) * 100 >= %(achv_1_pct)s
-                THEN m.sales_bulanan * %(bonus_1_pct)s
+                 AND m.sales_bulanan >= t.target
+                THEN %(custom_5_bonus)s / m.hari_aktif
 
             ELSE 0
         END AS bonus_crew_utama
-
     FROM base b
     LEFT JOIN monthly_sales m
         ON b.outlet = m.outlet
-    LEFT JOIN target_bulanan t
+    LEFT JOIN target_bulanan t              -- 🔹 TAMBAHAN
         ON b.outlet = t.outlet
 ),
+
 crew_logic AS (
     SELECT
         *,

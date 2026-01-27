@@ -66,10 +66,6 @@ monthly_tier_1_sales = monthly_tier_2_sales = monthly_tier_3_sales = 0
 monthly_tier_1_pct = monthly_tier_2_pct = monthly_tier_3_pct = 0.0
 
 custom_5_bonus = 0  # 🔹 TAMBAHAN
-# ===== DEFAULT ACHIEVEMENT =====
-achv_1_pct = achv_2_pct = achv_3_pct = 0
-bonus_1_pct = bonus_2_pct = bonus_3_pct = 0.0
-
 
 # SETTING BONUS
 
@@ -97,28 +93,10 @@ elif mode_key == "custom_4":
     monthly_tier_3_sales = st.sidebar.number_input("Tier 3 ≥", value=60_000_000)
     monthly_tier_3_pct = st.sidebar.number_input("Bonus % Tier 3", value=0.10, step=0.005)
 
-elif mode_key == "custom_5":
-    st.sidebar.markdown("### Tier Achievement Target")
-
-    achv_1_pct = st.sidebar.number_input(
-        "Achievement ≥ (%)", value=100, step=5
-    )
-    bonus_1_pct = st.sidebar.number_input(
-        "Bonus % dari Sales", value=0.02, step=0.005
-    )
-
-    achv_2_pct = st.sidebar.number_input(
-        "Achievement ≥ (%) ", value=110, step=5
-    )
-    bonus_2_pct = st.sidebar.number_input(
-        "Bonus % dari Sales ", value=0.03, step=0.005
-    )
-
-    achv_3_pct = st.sidebar.number_input(
-        "Achievement ≥ (%)  ", value=120, step=5
-    )
-    bonus_3_pct = st.sidebar.number_input(
-        "Bonus % dari Sales  ", value=0.04, step=0.005
+elif mode_key == "custom_5":  # 🔹 TAMBAHAN
+    custom_5_bonus = st.sidebar.number_input(
+        "Bonus Bulanan (Jika Achieve Target Outlet)",
+        value=1_500_000
     )
 
 # CREW PERBANTUAN
@@ -207,20 +185,21 @@ elif mode_key == "custom_4":
 
 else:  # 🔹 CUSTOM 5
     st.info(
-    f"""
-    **Skema Custom 5 – Bonus Achievement Target Bulanan Outlet**
+        f"""
+        **Skema Custom 5 – Bonus Target Bulanan per Outlet**
 
-    - Gapok dibayar **harian**
-    - Bonus dihitung dari **persentase sales bulanan**
-    - Berdasarkan **achievement terhadap target outlet**
-    - Bonus dialokasikan **rata per hari aktif outlet**
+        - Gapok dibayar **harian**
+        - Bonus **bulanan per outlet**
+        - Target **berbeda tiap outlet** (master_target Nov 2025)
+        - Bonus dibagi rata ke hari aktif outlet
 
-    **Tier Achievement:**
-    - ≥ {achv_1_pct}% target → **{bonus_1_pct:.1%} dari sales**
-    - ≥ {achv_2_pct}% target → **{bonus_2_pct:.1%} dari sales**
-    - ≥ {achv_3_pct}% target → **{bonus_3_pct:.1%} dari sales**
-    """
-)
+        **Bonus Bulanan:**
+        Rp {custom_5_bonus:,.0f} / outlet (jika achieve)
+
+        **Crew Perbantuan:**  
+        {"Aktif (berdasarkan threshold sales harian)" if use_perbantuan else "Tidak digunakan"}
+        """
+    )
 
 # PARAMS SQL
 params = {
@@ -229,12 +208,11 @@ params = {
     "end_date": end_date,
     "gapok": gapok,
     "gaji_perbantuan": gaji_perbantuan,
-
     "use_flat_bonus": 1 if mode_key == "custom_1" else 0,
     "use_tier_bonus": 1 if mode_key == "custom_2" else 0,
     "use_monthly_fixed": 1 if mode_key == "custom_3" else 0,
     "use_monthly_tier": 1 if mode_key == "custom_4" else 0,
-    "use_custom_5": 1 if mode_key == "custom_5" else 0,
+    "use_custom_5": 1 if mode_key == "custom_5" else 0,  # 🔹 TAMBAHAN
 
     "bonus_trigger": bonus_trigger,
     "flat_bonus": flat_bonus,
@@ -256,19 +234,12 @@ params = {
     "monthly_tier_2_pct": monthly_tier_2_pct,
     "monthly_tier_3_pct": monthly_tier_3_pct,
 
-    # CUSTOM 5 – ACHIEVEMENT BASED
-    "achv_1_pct": achv_1_pct,
-    "achv_2_pct": achv_2_pct,
-    "achv_3_pct": achv_3_pct,
-
-    "bonus_1_pct": bonus_1_pct,
-    "bonus_2_pct": bonus_2_pct,
-    "bonus_3_pct": bonus_3_pct,
+    "custom_5_bonus": custom_5_bonus,  # 🔹 TAMBAHAN
 
     "use_perbantuan": 1 if use_perbantuan else 0,
     "crew_1_threshold": crew_1_threshold,
     "crew_2_threshold": crew_2_threshold,
-    "crew_3_threshold": crew_3_threshold,
+    "crew_3_threshold": crew_3_threshold
 }
 
 # LOAD DATA
@@ -276,7 +247,6 @@ df = fetch_dataframe(SIMULATION_QUERY, params)
 if df.empty:
     st.warning("Data kosong")
     st.stop()
-
 
 # ================= CUSTOM 1 & 2 ========================
 if mode_key in ["custom_1", "custom_2"]:

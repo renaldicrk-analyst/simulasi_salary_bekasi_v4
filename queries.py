@@ -114,16 +114,21 @@ salary_logic AS (
 
             -- CUSTOM 5 – TARGET BULANAN OUTLET (DIALOKASI HARIAN) 🔹 TAMBAHAN
             WHEN %(use_custom_5)s = 1
-                AND (m.sales_bulanan / NULLIF(t.target, 0)) * 100 >= %(achv_3_pct)s
-            THEN (m.sales_bulanan * %(bonus_3_pct)s) / m.hari_aktif
+            AND rn = 1
+            AND (m.sales_bulanan / NULLIF(t.target, 0)) * 100 >= %(achv_3_pct)s
+            THEN m.sales_bulanan * %(bonus_3_pct)s
+
 
             WHEN %(use_custom_5)s = 1
-                AND (m.sales_bulanan / NULLIF(t.target, 0)) * 100 >= %(achv_2_pct)s
-            THEN (m.sales_bulanan * %(bonus_2_pct)s) / m.hari_aktif
+            AND rn = 1
+            AND (m.sales_bulanan / NULLIF(t.target, 0)) * 100 >= %(achv_2_pct)s
+            THEN m.sales_bulanan * %(bonus_2_pct)s
+
 
             WHEN %(use_custom_5)s = 1
-                AND (m.sales_bulanan / NULLIF(t.target, 0)) * 100 >= %(achv_1_pct)s
-            THEN (m.sales_bulanan * %(bonus_1_pct)s) / m.hari_aktif
+            AND rn = 1
+            AND (m.sales_bulanan / NULLIF(t.target, 0)) * 100 >= %(achv_1_pct)s
+            THEN m.sales_bulanan * %(bonus_1_pct)s
 
             ELSE 0
         END AS bonus_crew_utama

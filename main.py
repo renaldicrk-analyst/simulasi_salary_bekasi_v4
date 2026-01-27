@@ -272,7 +272,9 @@ df = fetch_dataframe(SIMULATION_QUERY, params)
 if df.empty:
     st.warning("Data kosong")
     st.stop()
-
+# DEFAULT PARAM (ANTI SQL ERROR)
+achv_1_pct = achv_2_pct = achv_3_pct = 0
+bonus_1_pct = bonus_2_pct = bonus_3_pct = 0.0
 # ================= CUSTOM 1 & 2 ========================
 if mode_key in ["custom_1", "custom_2"]:
 

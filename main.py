@@ -139,27 +139,9 @@ elif mode_key == "custom_4":
     )
 
 elif mode_key == "custom_5":
-    st.sidebar.markdown("### Tier Achievement Target")
-
-    achv_1_pct = st.sidebar.number_input(
-        "Achievement ≥ (%)", value=100, step=5
-    )
-    bonus_1_pct = st.sidebar.number_input(
-        "Bonus % dari Sales", value=0.02, step=0.005
-    )
-
-    achv_2_pct = st.sidebar.number_input(
-        "Achievement ≥ (%) ", value=110, step=5
-    )
-    bonus_2_pct = st.sidebar.number_input(
-        "Bonus % dari Sales ", value=0.03, step=0.005
-    )
-
-    achv_3_pct = st.sidebar.number_input(
-        "Achievement ≥ (%)  ", value=120, step=5
-    )
-    bonus_3_pct = st.sidebar.number_input(
-        "Bonus % dari Sales  ", value=0.04, step=0.005
+    custom_5_bonus = st.sidebar.number_input(
+        "Bonus Bulanan (Jika Achieve Target Outlet)",
+        value=1_500_000
     )
 
 
@@ -259,20 +241,18 @@ elif mode_key == "custom_4":
 
 else:  # 🔹 CUSTOM 5
     st.info(
-    f"""
-    **Skema Custom 5 – Bonus Achievement Target Bulanan Outlet**
+        f"""
+**Skema Custom 5 – Bonus Target Bulanan per Outlet**
+- Gapok dibayar **harian**
+- Bonus **bulanan per outlet**
+- Target **berbeda tiap outlet** (master_target Nov 2025)
+- Bonus dibagi rata ke hari aktif outlet
 
-    - Gapok dibayar **harian**
-    - Bonus dihitung dari **persentase sales bulanan**
-    - Berdasarkan **achievement terhadap target outlet**
-    - Bonus dialokasikan **rata per hari aktif outlet**
+**Bonus Bulanan:** Rp {custom_5_bonus:,.0f} / outlet (jika achieve)
 
-    **Tier Achievement:**
-    - ≥ {achv_1_pct}% target → **{bonus_1_pct:.1%} dari sales**
-    - ≥ {achv_2_pct}% target → **{bonus_2_pct:.1%} dari sales**
-    - ≥ {achv_3_pct}% target → **{bonus_3_pct:.1%} dari sales**
-    """
-)
+**Crew Perbantuan:** {"Aktif (berdasarkan threshold sales harian)" if use_perbantuan else "Tidak digunakan"}
+"""
+    )
 
 
 # ======================================================
@@ -311,13 +291,7 @@ params = {
     "monthly_tier_2_pct": monthly_tier_2_pct,
     "monthly_tier_3_pct": monthly_tier_3_pct,
 
-    "achv_1_pct": achv_1_pct,
-    "achv_2_pct": achv_2_pct,
-    "achv_3_pct": achv_3_pct,
-
-    "bonus_1_pct": bonus_1_pct,
-    "bonus_2_pct": bonus_2_pct,
-    "bonus_3_pct": bonus_3_pct,
+    "custom_5_bonus": custom_5_bonus,
 
     "use_perbantuan": 1 if use_perbantuan else 0,
     "crew_1_threshold": crew_1_threshold,
@@ -326,34 +300,21 @@ params = {
 }
 
 
+# ======================================================
 # LOAD DATA
+# ======================================================
 df = fetch_dataframe(SIMULATION_QUERY, params)
 
 if df.empty:
     st.warning("Data kosong")
     st.stop()
 
-# ================= CUSTOM 1 & 2 ========================
+
+# ======================================================
+# CUSTOM 1 & 2
+# ======================================================
 if mode_key in ["custom_1", "custom_2"]:
-
-    st.subheader("Range Total Salary")
-    min_salary = gapok * days
-    max_salary = (gapok + df["bonus_crew_utama"].max()) * days
-
-    c1, c2 = st.columns(2)
-    c1.metric("Minimum", f"Rp {min_salary:,.0f}")
-    c2.metric("Maksimum", f"Rp {max_salary:,.0f}")
-
-    st.subheader("Distribusi Bonus")
-    dist = df["keterangan_bonus"].value_counts().reset_index()
-    dist.columns = ["Status Bonus", "Jumlah Hari"]
-    dist["Persentase"] = (
-        dist["Jumlah Hari"] / dist["Jumlah Hari"].sum()
-    ).round(2)
-
-    st.dataframe(dist, use_container_width=True)
-
-    st.subheader("Ringkasan Total")
+    st.subheader("Ringkasan")
     total_sales = df["sales"].sum()
     total_salary = df["total_salary"].sum()
     total_bonus = df["bonus_crew_utama"].sum()
@@ -363,30 +324,15 @@ if mode_key in ["custom_1", "custom_2"]:
     c2.metric("Total Salary", f"Rp {total_salary:,.0f}")
     c3.metric("Total Bonus", f"Rp {total_bonus:,.0f}")
 
-    st.metric("Salary Cost", f"{total_salary / total_sales:.2%}")
+    st.dataframe(df, use_container_width=True)
 
-    st.subheader("Detail Harian")
-    st.dataframe(
-        df[
-            [
-                "tanggal",
-                "outlet",
-                "sales",
-                "keterangan_bonus",
-                "gapok",
-                "total_gaji_perbantuan",
-                "bonus_crew_utama",
-                "crew_perbantuan",
-                "total_salary",
-            ]
-        ],
-        use_container_width=True,
-    )
 
-# ================= CUSTOM 3, 4 & 5 ========================
+# ======================================================
+# CUSTOM 3, 4 & 5
+# ======================================================
 else:
-
     st.subheader("Ringkasan Bonus Bulanan")
+
     bonus_df = (
         df.groupby("outlet")
         .agg(
@@ -396,50 +342,4 @@ else:
         .reset_index()
     )
 
-    achieved = bonus_df[bonus_df["bonus"] > 0]
-
-    total_outlet = df["outlet"].nunique()
-    achieved_outlet = achieved["outlet"].nunique()
-    achievement_pct = (
-        achieved_outlet / total_outlet if total_outlet > 0 else 0
-    )
-
-    total_sales = df["sales"].sum()
-    total_salary_without_bonus = df["total_salary"].sum()
-
-    c1, c2, c3, c4, c5, c6 = st.columns(6)
-    c1.metric("Total Outlet", total_outlet)
-    c2.metric("Outlet Achieve Target", achieved_outlet)
-    c3.metric("% Achieve Target", f"{achievement_pct:.1%}")
-    c4.metric(
-        "Total Bonus Bulanan",
-        f"Rp {achieved['bonus'].sum():,.0f}",
-    )
-    c5.metric("Total Sales", f"Rp {total_sales:,.0f}")
-    c6.metric(
-        "Total Salary (Tanpa Bonus)",
-        f"Rp {total_salary_without_bonus:,.0f}",
-    )
-
-    total_salary = total_salary_without_bonus + achieved["bonus"].sum()
-    st.metric("Salary Cost", f"{total_salary / total_sales:.2%}")
-
-    st.subheader("Detail Harian (Tanpa Bonus)")
-    df["total_salary_harian"] = (
-        df["gapok"] + df["total_gaji_perbantuan"]
-    )
-
-    st.dataframe(
-        df[
-            [
-                "tanggal",
-                "outlet",
-                "sales",
-                "gapok",
-                "crew_perbantuan",
-                "total_gaji_perbantuan",
-                "total_salary_harian",
-            ]
-        ],
-        use_container_width=True,
-    )
+    st.dataframe(bonus_df, use_container_width=True)

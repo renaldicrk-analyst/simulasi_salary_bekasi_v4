@@ -136,7 +136,7 @@ salary_logic AS (
     LEFT JOIN monthly_sales m
         ON b.outlet = m.outlet
     LEFT JOIN target_bulanan t              -- 🔹 TAMBAHAN
-        ON b.outlet = t.outlet
+        ON lower(trim(b.outlet)) = lower(trim(t.outlet))
 ),
 
 

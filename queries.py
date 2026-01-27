@@ -124,20 +124,6 @@ salary_logic AS (
             WHEN %(use_custom_5)s = 1
                  AND m.sales_bulanan >= t.target
                 THEN %(custom_5_bonus)s / m.hari_aktif
-            
-            -- CUSTOM 6 – ACHIEVEMENT TARGET BULANAN (DIALOKASI HARIAN)
-            WHEN %(use_custom_6)s = 1
-                AND (m.sales_bulanan / NULLIF(t.target,0)) >= %(achv_tier_3)s
-            THEN (m.sales_bulanan * %(achv_tier_3_pct)s) / m.hari_aktif
-
-            WHEN %(use_custom_6)s = 1
-                AND (m.sales_bulanan / NULLIF(t.target,0)) >= %(achv_tier_2)s
-            THEN (m.sales_bulanan * %(achv_tier_2_pct)s) / m.hari_aktif
-
-            WHEN %(use_custom_6)s = 1
-                AND (m.sales_bulanan / NULLIF(t.target,0)) >= %(achv_tier_1)s
-            THEN (m.sales_bulanan * %(achv_tier_1_pct)s) / m.hari_aktif
-
 
             ELSE 0
         END AS bonus_crew_utama

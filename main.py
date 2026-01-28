@@ -212,7 +212,7 @@ st.dataframe(tier_dist, use_container_width=True)
 # ======================================================
 # RINGKASAN FINANSIAL
 # ======================================================
-st.subheader("Ringkasan Finansial")
+st.subheader("Summary")
 
 total_sales = df["sales"].sum()
 total_salary = df["total_salary"].sum()

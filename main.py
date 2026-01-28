@@ -89,7 +89,10 @@ tier_3_pct = st.sidebar.number_input(
 # ======================================================
 st.sidebar.header("Crew Perbantuan")
 
-use_perbantuan = st.sidebar.checkbox("Gunakan Crew Perbantuan", value=True)
+use_perbantuan = st.sidebar.checkbox(
+    "Gunakan Crew Perbantuan",
+    value=True
+)
 
 crew_1_threshold = st.sidebar.number_input(
     "Sales ≥ +1 Crew",
@@ -158,9 +161,9 @@ if df.empty:
     st.stop()
 
 # ======================================================
-# RINGKASAN
+# RINGKASAN BULANAN
 # ======================================================
-st.subheader("Ringkasan Bulanan")
+st.subheader("Ringkasan Bulanan per Outlet")
 
 bonus_df = (
     df.groupby("outlet")
@@ -174,8 +177,55 @@ bonus_df = (
 
 bonus_df["achievement"] = bonus_df["sales_bulanan"] / bonus_df["target"]
 
+# klasifikasi tier
+def classify_tier(x):
+    if x >= tier_3_ach:
+        return "Tier 3"
+    elif x >= tier_2_ach:
+        return "Tier 2"
+    elif x >= tier_1_ach:
+        return "Tier 1"
+    else:
+        return "Tidak Achieve"
+
+bonus_df["tier"] = bonus_df["achievement"].apply(classify_tier)
+
 st.dataframe(bonus_df, use_container_width=True)
 
+# ======================================================
+# DISTRIBUSI TIER OUTLET
+# ======================================================
+st.subheader("Distribusi Achievement Outlet")
+
+tier_dist = (
+    bonus_df["tier"]
+    .value_counts()
+    .reset_index()
+)
+tier_dist.columns = ["Tier", "Jumlah Outlet"]
+
+total_outlet = tier_dist["Jumlah Outlet"].sum()
+tier_dist["Persentase"] = (
+    tier_dist["Jumlah Outlet"] / total_outlet
+).round(2)
+
+st.dataframe(tier_dist, use_container_width=True)
+
+# ======================================================
+# METRIC RINGKAS
+# ======================================================
+st.subheader("Ringkasan Achievement (%)")
+
+c1, c2, c3, c4 = st.columns(4)
+
+c1.metric("Tier 3", f"{(bonus_df['tier'] == 'Tier 3').mean():.0%}")
+c2.metric("Tier 2", f"{(bonus_df['tier'] == 'Tier 2').mean():.0%}")
+c3.metric("Tier 1", f"{(bonus_df['tier'] == 'Tier 1').mean():.0%}")
+c4.metric("Tidak Achieve", f"{(bonus_df['tier'] == 'Tidak Achieve').mean():.0%}")
+
+# ======================================================
+# RINGKASAN FINANSIAL
+# ======================================================
 total_sales = df["sales"].sum()
 total_salary = df["total_salary"].sum()
 

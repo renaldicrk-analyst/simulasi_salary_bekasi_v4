@@ -98,12 +98,10 @@ crew_1_threshold = st.sidebar.number_input(
     "Sales ≥ +1 Crew",
     value=1_700_000
 )
-
 crew_2_threshold = st.sidebar.number_input(
     "Sales ≥ +2 Crew",
     value=2_700_000
 )
-
 crew_3_threshold = st.sidebar.number_input(
     "Sales ≥ +3 Crew",
     value=3_700_000
@@ -212,18 +210,6 @@ tier_dist["Persentase"] = (
 st.dataframe(tier_dist, use_container_width=True)
 
 # ======================================================
-# METRIC JUMLAH OUTLET
-# ======================================================
-st.subheader("Jumlah Outlet per Tier")
-
-c1, c2, c3, c4 = st.columns(4)
-
-c1.metric("Tier 3", int((bonus_df["tier"] == "Tier 3").sum()))
-c2.metric("Tier 2", int((bonus_df["tier"] == "Tier 2").sum()))
-c3.metric("Tier 1", int((bonus_df["tier"] == "Tier 1").sum()))
-c4.metric("Tidak Achieve", int((bonus_df["tier"] == "Tidak Achieve").sum()))
-
-# ======================================================
 # RINGKASAN FINANSIAL
 # ======================================================
 st.subheader("Ringkasan Finansial")
@@ -232,7 +218,6 @@ total_sales = df["sales"].sum()
 total_salary = df["total_salary"].sum()
 
 c1, c2, c3 = st.columns(3)
-
 c1.metric("Total Sales", f"Rp {total_sales:,.0f}")
 c2.metric("Total Salary", f"Rp {total_salary:,.0f}")
 c3.metric("Salary Cost", f"{total_salary / total_sales:.2%}")

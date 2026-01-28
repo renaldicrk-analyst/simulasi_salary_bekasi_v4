@@ -15,7 +15,7 @@ st.set_page_config(
 
 st.title("Simulasi Penggajian")
 
-branch = "Bandung"
+branch = "Jakarta"
 
 # ======================================================
 # SIDEBAR – PILIH SKEMA
